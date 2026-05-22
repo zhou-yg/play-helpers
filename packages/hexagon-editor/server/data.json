@@ -1,0 +1,16 @@
+{
+  "terrainDefs": {
+    "fire": {
+      "id": "fire",
+      "name": "Fire",
+      "icon": "🔥",
+      "color": "#fb3613",
+      "heightRange": [
+        0,
+        3
+      ]
+    }
+  },
+  "decorationDefs": {},
+  "configs": []
+}

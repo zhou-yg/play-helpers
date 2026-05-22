@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__new_page",
+      "Bash(gh issue list:*)",
+      "Bash(pnpm:*)",
+      "Bash(node_modules/.bin/next:*)",
+      "Bash(lsof:*)",
+      "Bash(vm_stat:*)",
+      "Bash(ulimit:*)",
+      "Bash(pkill:*)",
+      "Bash(pstree:*)"
+    ]
+  }
+}
