@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import Editor from '@/components/Editor';
 
-export default function Editor() {
-  return (
-    <div>hello</div>
-  )
+export default function Page() {
+  return <Editor />;
 }
