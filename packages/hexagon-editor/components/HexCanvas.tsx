@@ -13,6 +13,7 @@ interface HexCanvasProps {
   onCellClick: (indexes: CellIndex, additive?: boolean) => void;
   onCellSwap: (from: CellIndex, to: CellIndex) => void;
   onGhostCellClick?: (indexes: CellIndex) => void;
+  onCellHover?: (indexes: CellIndex | null) => void;
 }
 
 export default function HexCanvas({
@@ -23,6 +24,7 @@ export default function HexCanvas({
   onCellClick,
   onCellSwap,
   onGhostCellClick,
+  onCellHover,
 }: HexCanvasProps) {
   const dragFrom = useRef<CellIndex | null>(null);
 
@@ -70,8 +72,16 @@ export default function HexCanvas({
     decIcons: string,
     extraClass: string,
     onClick?: (e: React.MouseEvent) => void,
+    onMouseEnter?: () => void,
+    onMouseLeave?: () => void,
   ) => (
-    <g className={`hexagon ${extraClass}`} onClick={onClick} style={{ cursor: 'pointer' }}>
+    <g
+      className={`hexagon ${extraClass}`}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      style={{ cursor: 'pointer' }}
+    >
       <polygon
         points={hexPoints(cx, cy)}
         fill={fillColor}
@@ -133,6 +143,8 @@ export default function HexCanvas({
           '',
           'ghost',
           () => onGhostCellClick?.([gx, gy]),
+          () => onCellHover?.([gx, gy]),
+          () => onCellHover?.(null),
         );
       })}
 
@@ -166,6 +178,8 @@ export default function HexCanvas({
               decIcons,
               extraClass,
               (e) => handleClick(cell.indexes, e),
+              () => onCellHover?.([cell.indexes[0], cell.indexes[1]]),
+              () => onCellHover?.(null),
             )}
           </g>
         );

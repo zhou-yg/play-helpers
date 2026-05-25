@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { TerrainConfig, TerrainDef, DecorationDef, Decoration } from '@/lib/types';
+import { TerrainConfig, TerrainDef, DecorationDef, Decoration, CellIndex } from '@/lib/types';
 import { cellKey } from '@/lib/hex-utils';
 import { DEFAULT_TERRAINS } from '@/lib/default-terrains';
 import { DEFAULT_DECORATIONS } from '@/lib/default-decorations';
@@ -36,6 +36,7 @@ export default function Editor() {
   const [configDrawerOpen, setConfigDrawerOpen] = useState(false);
   const [configs, setConfigs] = useState<TerrainConfig[]>([]);
   const [brushType, setBrushType] = useState('grass');
+  const [hoveredCell, setHoveredCell] = useState<CellIndex | null>(null);
 
   const terrainDefsMap: Record<string, TerrainDef> = {};
   for (const t of DEFAULT_TERRAINS) {
@@ -51,6 +52,10 @@ export default function Editor() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setMode]);
+
+  const handleCellHover = useCallback((indexes: CellIndex | null) => {
+    setHoveredCell(indexes);
+  }, []);
 
   const handleCellClick = useCallback(
     (indexes: [number, number], additive?: boolean) => {
@@ -173,6 +178,7 @@ export default function Editor() {
               onCellClick={handleCellClick}
               onCellSwap={swapCells}
               onGhostCellClick={handleGhostCellClick}
+              onCellHover={handleCellHover}
             />
           </div>
         </div>
@@ -180,6 +186,7 @@ export default function Editor() {
           <span>Mode: {mode.charAt(0).toUpperCase() + mode.slice(1)}</span>
           <span>Cells: {cells.size}</span>
           <span>Selected: {selected.length}</span>
+          <span>坐标: {hoveredCell ? `[${hoveredCell[0]}, ${hoveredCell[1]}]` : '—'}</span>
           <span className="shortcut-hint">Shortcuts: S=Select P=Paint W=Swap</span>
         </div>
       </div>
