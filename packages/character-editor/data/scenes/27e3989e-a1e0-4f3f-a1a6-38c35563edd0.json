@@ -1,0 +1,14 @@
+{
+  "id": "27e3989e-a1e0-4f3f-a1a6-38c35563edd0",
+  "name": "新场景",
+  "assets": [],
+  "canvasConfig": {
+    "width": 512,
+    "height": 512,
+    "bgColor": "#222222",
+    "pixelSize": 16
+  },
+  "selectedAssetIds": [],
+  "createdAt": "2026-06-12T03:52:32.279Z",
+  "updatedAt": "2026-06-12T03:52:32.279Z"
+}
