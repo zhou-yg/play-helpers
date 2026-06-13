@@ -65,24 +65,37 @@ export function useImageProcessing() {
 
       try {
         const imageFile = images.find((img) => img.id === imageId);
-        if (!imageFile) return;
+        if (!imageFile) {
+          processingRef.current = false;
+          return;
+        }
 
         const img = await loadImageFromFile(imageFile.file);
+        const currentSettings = settings;
+        
+        console.log('[processCurrentImage] autoSplit:', currentSettings.autoSplit, 'targetColors:', currentSettings.targetColors, 'tolerance:', currentSettings.tolerance);
+
         const results = processImage(
           img,
-          settings.targetColors,
-          settings.tolerance,
-          settings.autoSplit,
+          currentSettings.targetColors,
+          currentSettings.tolerance,
+          currentSettings.autoSplit,
           imageFile.name,
           imageId
         );
+
+        console.log('[processCurrentImage] results count:', results.length, 'split pieces:', results.filter(r => r.isSplit).length);
 
         setProcessedImages((prev) => {
           const others = prev.filter((p) => p.originalId !== imageId);
           return [...others, ...results];
         });
 
-        setPreviewMode('cleaned');
+        const hasSplit = results.some((r) => r.isSplit);
+        setPreviewMode(hasSplit ? 'split' : 'cleaned');
+      } catch (err) {
+        console.error('[processCurrentImage] error:', err);
+        alert(`处理失败: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         processingRef.current = false;
       }

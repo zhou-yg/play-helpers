@@ -95,8 +95,16 @@ export function autoSplit(
   const width = sourceCanvas.width;
   const height = sourceCanvas.height;
 
+  console.log('[autoSplit] canvas size:', width, 'x', height, 'total pixels:', width * height);
+
   const visited = new Uint8Array(width * height);
   const pieces: HTMLCanvasElement[] = [];
+
+  let totalNonTransparent = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] > 0) totalNonTransparent++;
+  }
+  console.log('[autoSplit] non-transparent pixels:', totalNonTransparent);
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -106,6 +114,7 @@ export function autoSplit(
       if (data[pxIdx + 3] === 0 || visited[idx]) continue;
 
       const region = floodFillGetRegion(data, width, height, x, y, visited);
+      console.log('[autoSplit] found region at', x, y, 'size:', region.size);
 
       if (region.size < 4) continue;
 
@@ -121,6 +130,8 @@ export function autoSplit(
 
       const pieceW = maxX - minX + 1;
       const pieceH = maxY - minY + 1;
+      console.log('[autoSplit] piece bounds:', minX, minY, pieceW, 'x', pieceH);
+      
       const pieceCanvas = document.createElement('canvas');
       pieceCanvas.width = pieceW;
       pieceCanvas.height = pieceH;
@@ -136,6 +147,7 @@ export function autoSplit(
     }
   }
 
+  console.log('[autoSplit] total pieces:', pieces.length);
   return pieces;
 }
 
@@ -147,6 +159,8 @@ export function processImage(
   name: string,
   originalId: string
 ): ProcessedImage[] {
+  console.log('[processImage] autoSplitEnabled:', autoSplitEnabled, 'image size:', img.naturalWidth, 'x', img.naturalHeight);
+  
   const cleanedCanvas = removeBackground(img, targetColors, tolerance);
 
   const results: ProcessedImage[] = [
@@ -161,6 +175,7 @@ export function processImage(
 
   if (autoSplitEnabled) {
     const pieces = autoSplit(cleanedCanvas);
+    console.log('[processImage] autoSplit found', pieces.length, 'pieces');
     pieces.forEach((pieceCanvas, index) => {
       results.push({
         id: `${originalId}-split-${index}`,
