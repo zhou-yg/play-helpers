@@ -1,6 +1,6 @@
 # ImageCup
 
-使用 react 和 vite , nodejs 开发
+使用 react 和 vite , nodejs 开发，
 
 ## Usage
 
