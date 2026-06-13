@@ -15,7 +15,7 @@ const QUICK_COMMANDS = [
   { label: '🔄 旋转90°', cmd: '请将素材顺时针旋转90度' },
 ];
 
-const AIChatPanel: React.FC = () => {
+const AIChatPanel: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const {
     isOpen,
     messages,
@@ -39,7 +39,7 @@ const AIChatPanel: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingContent]);
 
-  if (!isOpen) return null;
+  if (!embedded && !isOpen) return null;
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -66,10 +66,12 @@ const AIChatPanel: React.FC = () => {
 
   return (
     <div className="ai-chat-panel">
-      <div className="ai-chat-header">
-        🤖 AI 助手 (DeepSeek) {isBatchMode ? '- 批量模式' : ''}
-        <button style={{ float: 'right', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }} onClick={closePanel}>✕</button>
-      </div>
+      {!embedded && (
+        <div className="ai-chat-header">
+          🤖 AI 助手 {isBatchMode ? '- 批量模式' : ''}
+          <button style={{ float: 'right', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }} onClick={closePanel}>✕</button>
+        </div>
+      )}
 
       <div className="ai-chat-messages">
         {messages.length === 0 && (
@@ -82,15 +84,6 @@ const AIChatPanel: React.FC = () => {
           <div key={msg.id} className={`chat-message ${msg.role}`}>
             {msg.role === 'user' ? '👤 ' : '🤖 '}
             {msg.content}
-            {msg.suggestedChange && (
-              <div className="suggested-change">
-                📄 检测到像素变更
-                <div className="suggested-change-actions">
-                  <button className="btn btn-sm btn-primary">应用变更</button>
-                  <button className="btn btn-sm">忽略</button>
-                </div>
-              </div>
-            )}
           </div>
         ))}
         {isStreaming && streamingContent && (

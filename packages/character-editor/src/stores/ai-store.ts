@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import type { AIChatMessage, PixelAsset } from '../types';
 import { getApiUrl } from '../lib/api';
+import { useAssetStore } from './asset-store';
 
 interface AIState {
   /** 是否打开 AI 面板 */
@@ -80,6 +81,7 @@ export const useAIStore = create<AIState>((set, get) => ({
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
       let fullContent = '';
+      let assistantMessageAdded = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -96,7 +98,8 @@ export const useAIStore = create<AIState>((set, get) => ({
                 fullContent += data.content;
                 set({ streamingContent: fullContent });
               }
-              if (data.done) {
+              if (data.done && !assistantMessageAdded) {
+                assistantMessageAdded = true;
                 // 解析 PIXEL_CHANGE 块
                 const changes = parsePixelChanges(fullContent);
                 const assistantMessage: AIChatMessage = {
@@ -124,6 +127,30 @@ export const useAIStore = create<AIState>((set, get) => ({
           }
         }
       }
+
+      // 兜底：如果流结束但 done 事件未触发，确保恢复状态
+      if (!assistantMessageAdded && fullContent) {
+        const changes = parsePixelChanges(fullContent);
+        const assistantMessage: AIChatMessage = {
+          id: uuidv4(),
+          role: 'assistant',
+          content: fullContent.replace(/<<<PIXEL_CHANGE[^>]*>>>[\s\S]*?<<<END_CHANGE>>>/g, '').trim(),
+          timestamp: Date.now(),
+          suggestedChange: changes.length > 0 ? {
+            path: changes[0].filePath || '',
+            originalJson: {} as PixelAsset,
+            modifiedJson: changes[0].pixelAsset,
+          } : undefined,
+        };
+        set((state) => ({
+          messages: [...state.messages, assistantMessage],
+          isStreaming: false,
+          streamingContent: '',
+          suggestedChanges: changes,
+        }));
+      } else if (!assistantMessageAdded) {
+        set({ isStreaming: false, streamingContent: '' });
+      }
     } catch (err: any) {
       const errorMessage: AIChatMessage = {
         id: uuidv4(),
@@ -144,7 +171,20 @@ export const useAIStore = create<AIState>((set, get) => ({
   applyChange: (index) => {
     const changes = get().suggestedChanges;
     if (index >= 0 && index < changes.length) {
-      // 这里触发保存到文件，通过 asset store 完成
+      const change = changes[index];
+      const assetStore = useAssetStore.getState();
+      // 优先使用变更中的 filePath，否则使用当前正在编辑的素材路径
+      const targetPath = change.filePath || assetStore.editingAssetPath;
+      if (targetPath) {
+        // 调用 asset-store 保存变更到文件
+        assetStore.updateAsset(targetPath, change.pixelAsset);
+        // 同步更新编辑器中的素材数据
+        if (assetStore.editingAssetPath === targetPath) {
+          assetStore.setEditingAsset(targetPath, change.pixelAsset);
+        }
+        // 刷新素材列表
+        assetStore.refreshAsset(targetPath);
+      }
       const newChanges = [...changes];
       newChanges.splice(index, 1);
       set({ suggestedChanges: newChanges });
@@ -159,6 +199,18 @@ export const useAIStore = create<AIState>((set, get) => ({
   },
 
   applyAllChanges: () => {
+    const changes = get().suggestedChanges;
+    const assetStore = useAssetStore.getState();
+    for (const change of changes) {
+      const targetPath = change.filePath || assetStore.editingAssetPath;
+      if (targetPath) {
+        assetStore.updateAsset(targetPath, change.pixelAsset);
+        if (assetStore.editingAssetPath === targetPath) {
+          assetStore.setEditingAsset(targetPath, change.pixelAsset);
+        }
+        assetStore.refreshAsset(targetPath);
+      }
+    }
     set({ suggestedChanges: [] });
   },
 

@@ -7,10 +7,9 @@ import CanvasArea from './components/CanvasArea';
 import EditDialog from './components/EditDialog';
 import SettingsPanel from './components/SettingsPanel';
 import SceneEditor from './components/SceneEditor';
-import AIChatPanel from './components/AIChatPanel';
+
 import { useSceneStore } from './stores/scene-store';
 import { useConfigStore } from './stores/config-store';
-import { useEditorStore } from './stores/editor-store';
 
 const App: React.FC = () => {
   const { isSceneMode } = useSceneStore();
@@ -27,7 +26,6 @@ const App: React.FC = () => {
         <div className="app-main">
           <AssetBar />
           {isSceneMode ? <SceneEditor /> : <CanvasArea />}
-          <AIChatPanel />
         </div>
         <EditDialog />
       </div>

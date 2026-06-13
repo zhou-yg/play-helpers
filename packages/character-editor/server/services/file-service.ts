@@ -118,7 +118,7 @@ export class FileService {
     } catch {
       return {
         assetFolderPath: DEFAULT_ASSET_FOLDER,
-        deepseekModel: 'deepseek-chat',
+        deepseekModel: 'deepseek-v4-pro',
         defaultPixelSize: 16,
         defaultPalette: [
           '#000000FF', '#FFFFFFFF', '#FF0000FF', '#00FF00FF',

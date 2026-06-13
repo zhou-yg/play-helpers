@@ -24,10 +24,9 @@ aiRouter.post('/chat', async (req: Request, res: Response) => {
       mode?: AIMode;
     };
 
-    const config = await fileService.readConfig();
-    const apiKey = config?.deepseekApiKey;
+    const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
-      res.status(400).json({ error: 'DeepSeek API Key 未配置，请在设置中配置' });
+      res.status(400).json({ error: 'DeepSeek API Key 未配置，请设置环境变量 DEEPSEEK_API_KEY' });
       return;
     }
 
@@ -35,7 +34,8 @@ aiRouter.post('/chat', async (req: Request, res: Response) => {
     const userMessage = messages[messages.length - 1]?.content || '';
     const aiMessages = aiService.buildMessages(aiMode, userMessage, context);
 
-    const model = config?.deepseekModel || 'deepseek-chat';
+    const config = await fileService.readConfig();
+    const model = config?.deepseekModel || 'deepseek-v4-pro';
 
     // 设置 SSE 响应头
     res.setHeader('Content-Type', 'text/event-stream');
@@ -77,14 +77,14 @@ aiRouter.post('/edit', async (req: Request, res: Response) => {
       assetData: any;
     };
 
-    const config = await fileService.readConfig();
-    const apiKey = config?.deepseekApiKey;
+    const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
-      res.status(400).json({ error: 'DeepSeek API Key 未配置' });
+      res.status(400).json({ error: 'DeepSeek API Key 未配置，请设置环境变量 DEEPSEEK_API_KEY' });
       return;
     }
 
-    const model = config?.deepseekModel || 'deepseek-chat';
+    const config = await fileService.readConfig();
+    const model = config?.deepseekModel || 'deepseek-v4-pro';
     const messages = aiService.buildMessages('edit', instruction, {
       assetPath,
       assetData,

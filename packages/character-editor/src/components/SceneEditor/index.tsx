@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import { useSceneStore } from '../../stores/scene-store';
 import { useConfigStore } from '../../stores/config-store';
 import { useAssetStore } from '../../stores/asset-store';
-import { useAIStore } from '../../stores/ai-store';
 import { pixelRenderer } from '../../lib/pixel-renderer';
 import { snapToGrid } from '../../lib/drag-drop';
 import { checkSizeClassMatch, toSizeClass } from '../../lib/pixel-utils';
@@ -116,7 +115,6 @@ import { useCallback } from 'react';
 
 const BatchActionBar: React.FC = () => {
   const { getSelectedAssets, activeScene, saveScene } = useSceneStore();
-  const { openPanel, setMode } = useAIStore();
   const selected = getSelectedAssets();
 
   if (selected.length === 0) return null;
@@ -130,15 +128,6 @@ const BatchActionBar: React.FC = () => {
       <button className="btn btn-sm" title="风格化">🎭风格化</button>
       <button className="btn btn-sm" title="优化">✨优化</button>
       <button className="btn btn-sm" title="清理">🧹清理</button>
-      <button
-        className="btn btn-sm btn-primary"
-        onClick={() => {
-          setMode('batch');
-          openPanel();
-        }}
-      >
-        🤖AI批量编辑
-      </button>
     </div>
   );
 };

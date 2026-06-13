@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useConfigStore } from '../../stores/config-store';
 import { useSceneStore } from '../../stores/scene-store';
-import { useAIStore } from '../../stores/ai-store';
 import { useAssetStore } from '../../stores/asset-store';
 import ExportDialog from './ExportDialog';
 
 const TopToolbar: React.FC = () => {
   const { config, setShowGrid, setPixelSize } = useConfigStore();
   const { isSceneMode, enterSceneMode, exitSceneMode, createScene } = useSceneStore();
-  const { togglePanel: toggleAIPanel } = useAIStore();
   const { fetchAssets } = useAssetStore();
   const [showExport, setShowExport] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -75,10 +73,6 @@ const TopToolbar: React.FC = () => {
 
         <button className="btn btn-icon" onClick={() => setShowSettings(true)}>
           ⚙️
-        </button>
-
-        <button className="btn btn-icon" onClick={toggleAIPanel}>
-          💬
         </button>
       </div>
 

@@ -160,8 +160,6 @@ interface Joint {
 interface AppConfig {
   /** JSON 文件夹路径 */
   assetFolderPath: string;
-  /** DeepSeek API Key */
-  deepseekApiKey?: string;
   /** DeepSeek 模型名称 */
   deepseekModel: string;  // 默认: "deepseek-chat"
   /** 默认像素颗粒大小 (px) */
@@ -647,7 +645,6 @@ PixelAsset.pixels → Canvas 2D Context → 按像素大小填充矩形
 | 配置项 | 类型 | 说明 |
 |--------|------|------|
 | 素材文件夹路径 | Input | Node.js 扫描的文件夹路径 |
-| DeepSeek API Key | Password Input | AI 功能的 API Key |
 | DeepSeek 模型 | Select | 选择 DeepSeek 模型版本 |
 | 默认像素大小 | Number | 画布默认像素颗粒大小 |
 | 默认调色板 | Color List | 自定义调色板颜色 |

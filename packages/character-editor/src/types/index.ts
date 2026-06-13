@@ -53,7 +53,6 @@ export interface PixelAsset {
 /** 应用配置 */
 export interface AppConfig {
   assetFolderPath: string;
-  deepseekApiKey?: string;
   deepseekModel: string;
   defaultPixelSize: number;
   defaultPalette: string[];

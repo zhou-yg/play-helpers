@@ -7,7 +7,7 @@ import apiClient from '../lib/api';
 
 const defaultConfig: AppConfig = {
   assetFolderPath: '',
-  deepseekModel: 'deepseek-chat',
+  deepseekModel: 'deepseek-v4-pro',
   defaultPixelSize: 16,
   defaultPalette: [
     '#000000FF', '#FFFFFFFF', '#FF0000FF', '#00FF00FF',

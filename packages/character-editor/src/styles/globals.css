@@ -273,6 +273,45 @@
 .edit-dialog-right {
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-dialog-right-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.right-tab-btn {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.right-tab-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.right-tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.edit-dialog-right-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .pixel-canvas-container {
@@ -424,6 +463,14 @@
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+}
+
+/* 嵌入模式下自适应容器 */
+.edit-dialog-right-content .ai-chat-panel {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  border-left: none;
 }
 
 .ai-chat-header {

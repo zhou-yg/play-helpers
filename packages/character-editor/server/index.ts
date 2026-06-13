@@ -1,6 +1,7 @@
 /**
  * Express API 服务器入口
  */
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { assetsRouter, assetRouter } from './routes/assets.js';

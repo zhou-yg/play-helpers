@@ -20,21 +20,12 @@ const SettingsPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
 
         <div className="settings-group">
-          <label>DeepSeek API Key</label>
-          <input
-            type="password"
-            value={config.deepseekApiKey || ''}
-            onChange={(e) => updateConfig({ deepseekApiKey: e.target.value })}
-            placeholder="sk-..."
-          />
-        </div>
-
-        <div className="settings-group">
           <label>DeepSeek 模型</label>
           <select
             value={config.deepseekModel}
             onChange={(e) => updateConfig({ deepseekModel: e.target.value })}
           >
+            <option value="deepseek-v4-pro">deepseek-v4-pro</option>
             <option value="deepseek-chat">deepseek-chat</option>
             <option value="deepseek-reasoner">deepseek-reasoner</option>
           </select>

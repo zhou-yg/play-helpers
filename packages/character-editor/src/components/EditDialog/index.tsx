@@ -7,6 +7,7 @@ import { applyTool, getPixelColor, HistoryManager, deepCopyPixels } from '../../
 import { PALETTE_PRESETS, extractPaletteFromPixels } from '../../lib/palette';
 import type { PixelTool, PixelAsset } from '../../types';
 import Editor from '@monaco-editor/react';
+import AIChatPanel from '../AIChatPanel';
 
 const historyManager = new HistoryManager();
 
@@ -103,6 +104,7 @@ const EditDialog: React.FC = () => {
   const [jsonStr, setJsonStr] = useState('');
   const [activePalette, setActivePalette] = useState(PALETTE_PRESETS[0]);
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [rightPanelMode, setRightPanelMode] = useState<'chat' | 'json'>('chat');
 
   useEffect(() => {
     if (editingAssetData?.pixels) {
@@ -256,24 +258,46 @@ const EditDialog: React.FC = () => {
             </div>
           </div>
           <div className="edit-dialog-right">
-            <Editor
-              height="100%"
-              defaultLanguage="json"
-              value={jsonStr}
-              onChange={handleJsonChange}
-              theme="vs-dark"
-              options={{
-                minimap: { enabled: false },
-                fontSize: 12,
-                wordWrap: 'on',
-                scrollBeyondLastLine: false,
-              }}
-            />
-            {jsonError && (
-              <div style={{ position: 'absolute', bottom: 0, right: 0, padding: 8, background: 'var(--error)', color: '#fff', fontSize: 12 }}>
-                {jsonError}
-              </div>
-            )}
+            <div className="edit-dialog-right-tabs">
+              <button
+                className={`right-tab-btn ${rightPanelMode === 'chat' ? 'active' : ''}`}
+                onClick={() => setRightPanelMode('chat')}
+              >
+                💬 AI 对话
+              </button>
+              <button
+                className={`right-tab-btn ${rightPanelMode === 'json' ? 'active' : ''}`}
+                onClick={() => setRightPanelMode('json')}
+              >
+                📄 JSON
+              </button>
+            </div>
+            <div className="edit-dialog-right-content">
+              {rightPanelMode === 'chat' ? (
+                <AIChatPanel embedded />
+              ) : (
+                <>
+                  <Editor
+                    height="100%"
+                    defaultLanguage="json"
+                    value={jsonStr}
+                    onChange={handleJsonChange}
+                    theme="vs-dark"
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 12,
+                      wordWrap: 'on',
+                      scrollBeyondLastLine: false,
+                    }}
+                  />
+                  {jsonError && (
+                    <div style={{ position: 'absolute', bottom: 0, right: 0, padding: 8, background: 'var(--error)', color: '#fff', fontSize: 12 }}>
+                      {jsonError}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
