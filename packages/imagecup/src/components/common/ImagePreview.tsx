@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import type { ImageFile, ProcessedImage } from '../types';
-import type { RGBColor } from '../types';
+import type { ImageFile, ProcessedImage } from '../../types';
+import type { RGBColor } from '../../types';
 import { ImageUploader } from './ImageUploader';
 
 interface SelectionRect {
@@ -35,6 +35,8 @@ interface ImagePreviewProps {
   onPreviewModeChange: (mode: 'original' | 'cleaned' | 'split') => void;
   onColorsPick?: (colors: RGBColor[]) => void;
   onAddImages?: (files: FileList | File[]) => Promise<unknown>;
+  /** 选中的图片元素，供外部模块获取图片尺寸等信息 */
+  onImageLoad?: (img: HTMLImageElement) => void;
 }
 
 export const ImagePreview: React.FC<ImagePreviewProps> = ({
@@ -50,6 +52,7 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
   onPreviewModeChange,
   onColorsPick,
   onAddImages,
+  onImageLoad,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -214,7 +217,9 @@ export const ImagePreview: React.FC<ImagePreviewProps> = ({
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext('2d')!;
     ctx.drawImage(img, 0, 0);
-  }, []);
+    // 通知外部图片已加载
+    onImageLoad?.(img);
+  }, [onImageLoad]);
 
   if (images.length === 0) {
     return (

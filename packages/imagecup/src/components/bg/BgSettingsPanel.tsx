@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import type { RGBColor, ProcessingMode } from '../types';
-import { rgbToHex, hexToRgb } from '../utils/colorUtils';
+import type { RGBColor, ProcessingMode } from '../../types';
+import { rgbToHex, hexToRgb } from '../../utils/colorUtils';
+import { CollapsibleSection } from '../common';
 
-interface SettingsPanelProps {
+interface BgSettingsPanelProps {
   targetColors: RGBColor[];
   tolerance: number;
   autoSplit: boolean;
@@ -14,7 +15,7 @@ interface SettingsPanelProps {
   onProcess: () => void;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({
+export const BgSettingsPanel: React.FC<BgSettingsPanelProps> = ({
   targetColors,
   tolerance,
   autoSplit,
@@ -79,9 +80,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   );
 
   return (
-    <div className="settings-panel">
-      <h3>清理设置</h3>
-
+    <CollapsibleSection title="背景清理" defaultExpanded={false}>
       <div className="setting-group">
         <label>目标颜色</label>
         <p className="setting-desc">
@@ -194,6 +193,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       <button className="btn-process" onClick={onProcess}>
         处理图片
       </button>
-    </div>
+    </CollapsibleSection>
   );
 };

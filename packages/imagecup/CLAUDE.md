@@ -20,15 +20,22 @@ packages/imagecup/
 ├── public/              静态资源
 ├── src/
 │   ├── main.tsx         入口文件
-│   ├── App.tsx          主组件，负责布局和数据流
+│   ├── App.tsx          主组件，负责布局和数据流（图片 + N * 处理模块）
 │   ├── App.css          组件样式
 │   ├── index.css        全局样式 / CSS 变量
 │   ├── vite-env.d.ts    Vite 类型声明
 │   ├── components/
-│   │   ├── Toolbar.tsx         顶部工具栏（导出按钮）
-│   │   ├── ImageUploader.tsx   图片上传组件（拖拽/点击）
-│   │   ├── ImagePreview.tsx    左侧预览区（原图/清理后/拆分结果）
-│   │   └── SettingsPanel.tsx   右侧设置面板（颜色/容差/拆分开关）
+│   │   ├── common/                   通用组件
+│   │   │   ├── index.ts              barrel 导出
+│   │   │   ├── Toolbar.tsx           顶部工具栏（导出按钮）
+│   │   │   ├── ImageUploader.tsx     图片上传组件（拖拽/点击）
+│   │   │   └── ImagePreview.tsx      左侧预览区（原图/清理后/拆分结果）
+│   │   ├── bg/                       背景清理处理模块
+│   │   │   ├── index.ts              barrel 导出
+│   │   │   └── BgSettingsPanel.tsx   背景清理设置面板（颜色/容差/拆分开关）
+│   │   └── info/                     图片信息展示模块
+│   │       ├── index.ts              barrel 导出
+│   │       └── InfoPanel.tsx         图片信息面板（尺寸/像素块检测）
 │   ├── hooks/
 │   │   └── useImageProcessing.ts  核心状态管理 hook
 │   ├── utils/
@@ -80,8 +87,9 @@ pnpm lint         # 类型检查 (tsc --noEmit)
 ## 数据流
 
 ```
-ImageUploader → addImages() → images[]
-SettingsPanel → updateTargetColors/updateTolerance/toggleAutoSplit → settings
+common/ImageUploader → addImages() → images[]
+bg/BgSettingsPanel → updateTargetColors/updateTolerance/toggleAutoSplit → settings
+info/InfoPanel ← image + imageElement → 展示图片尺寸/像素块信息
     ↓
 processCurrentImage(id)
     → loadImageFromFile → HTMLImageElement
@@ -90,6 +98,6 @@ processCurrentImage(id)
         → autoSplit (canvas pieces)
     → processedImages[]
     ↓
-ImagePreview ← 展示原图/清理后/拆分结果
-Toolbar ← export (导出为 PNG)
+common/ImagePreview ← 展示原图/清理后/拆分结果 + onImageLoad → InfoPanel
+common/Toolbar ← export (导出为 PNG)
 ```

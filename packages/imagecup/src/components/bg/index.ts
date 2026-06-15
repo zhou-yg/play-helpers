@@ -1,0 +1,1 @@
+export { BgSettingsPanel } from './BgSettingsPanel';

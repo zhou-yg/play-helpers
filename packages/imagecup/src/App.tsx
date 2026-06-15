@@ -1,9 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useImageProcessing } from './hooks/useImageProcessing';
-import { Toolbar } from './components/Toolbar';
-import { ImagePreview } from './components/ImagePreview';
-import { SettingsPanel } from './components/SettingsPanel';
-import { ImageUploader } from './components/ImageUploader';
+import { Toolbar, ImagePreview, ImageUploader } from './components/common';
+import { BgSettingsPanel } from './components/bg';
+import { InfoPanel } from './components/info';
 import type { RGBColor } from './types';
 import './App.css';
 
@@ -31,6 +30,9 @@ const App: React.FC = () => {
     exportAll,
   } = useImageProcessing();
 
+  // 保存当前加载的图片元素引用，供 InfoPanel 使用
+  const [loadedImageElement, setLoadedImageElement] = useState<HTMLImageElement | null>(null);
+
   const handleProcess = useCallback(() => {
     if (images.length === 0) return;
     if (selectedImageId) {
@@ -53,10 +55,16 @@ const App: React.FC = () => {
     [settings.targetColors, updateTargetColors]
   );
 
+  const handleImageLoad = useCallback((img: HTMLImageElement) => {
+    setLoadedImageElement(img);
+  }, []);
+
   const hasProcessed = processedImages.length > 0;
   const originalUrl = getSelectedOriginalUrl();
   const cleanedUrl = getSelectedCleanedUrl();
   const splitUrls = getSelectedSplitUrls();
+
+  const selectedImage = images.find((img) => img.id === selectedImageId) ?? null;
 
   return (
     <div className="app">
@@ -83,11 +91,16 @@ const App: React.FC = () => {
             onPreviewModeChange={setPreviewMode}
             onColorsPick={handleColorsPick}
             onAddImages={addImages}
+            onImageLoad={handleImageLoad}
           />
         </div>
 
         <div className="right-panel">
-          <SettingsPanel
+          <InfoPanel
+            image={selectedImage}
+            imageElement={loadedImageElement}
+          />
+          <BgSettingsPanel
             targetColors={settings.targetColors}
             tolerance={settings.tolerance}
             autoSplit={settings.autoSplit}

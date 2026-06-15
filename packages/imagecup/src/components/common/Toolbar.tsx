@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ProcessedImage } from '../types';
+import type { ProcessedImage } from '../../types';
 
 interface ToolbarProps {
   processedImages: ProcessedImage[];
