@@ -1,14 +1,16 @@
 import React, { useState, useCallback } from 'react';
-import type { RGBColor } from '../types';
+import type { RGBColor, ProcessingMode } from '../types';
 import { rgbToHex, hexToRgb } from '../utils/colorUtils';
 
 interface SettingsPanelProps {
   targetColors: RGBColor[];
   tolerance: number;
   autoSplit: boolean;
+  processingMode: ProcessingMode;
   onTargetColorsChange: (colors: RGBColor[]) => void;
   onToleranceChange: (tolerance: number) => void;
   onAutoSplitToggle: () => void;
+  onProcessingModeChange: (mode: ProcessingMode) => void;
   onProcess: () => void;
 }
 
@@ -16,9 +18,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   targetColors,
   tolerance,
   autoSplit,
+  processingMode,
   onTargetColorsChange,
   onToleranceChange,
   onAutoSplitToggle,
+  onProcessingModeChange,
   onProcess,
 }) => {
   const [hexInput, setHexInput] = useState(rgbToHex(targetColors[0] ?? { r: 255, g: 255, b: 255 }));
@@ -129,6 +133,29 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             清空全部颜色（重置为白色）
           </button>
         )}
+      </div>
+
+      <div className="setting-group">
+        <label>处理模式</label>
+        <p className="setting-desc">
+          选择背景颜色的移除方式
+        </p>
+        <div className="mode-selector">
+          <button
+            className={`mode-btn ${processingMode === 'edge-to-center' ? 'active' : ''}`}
+            onClick={() => onProcessingModeChange('edge-to-center')}
+          >
+            <span className="mode-btn-title">边缘向中心</span>
+            <span className="mode-btn-desc">从图片边缘逐步移除背景色，保护内部同色区域</span>
+          </button>
+          <button
+            className={`mode-btn ${processingMode === 'global' ? 'active' : ''}`}
+            onClick={() => onProcessingModeChange('global')}
+          >
+            <span className="mode-btn-title">全局处理</span>
+            <span className="mode-btn-desc">移除图片中所有匹配的颜色，不限位置</span>
+          </button>
+        </div>
       </div>
 
       <div className="setting-group">

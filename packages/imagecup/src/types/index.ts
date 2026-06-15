@@ -25,10 +25,13 @@ export interface ColorRange {
   label: string;
 }
 
+export type ProcessingMode = 'global' | 'edge-to-center';
+
 export interface ProcessingSettings {
   targetColors: RGBColor[];
   tolerance: number;
   autoSplit: boolean;
+  processingMode: ProcessingMode;
 }
 
 export interface AppState {

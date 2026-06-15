@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import type { ImageFile, ProcessedImage, ProcessingSettings, RGBColor } from '../types';
+import type { ImageFile, ProcessedImage, ProcessingSettings, RGBColor, ProcessingMode } from '../types';
 import { loadImageFromFile, processImage } from '../utils/imageProcessor';
 
 function generateId(): string {
@@ -20,6 +20,7 @@ export function useImageProcessing() {
     targetColors: [{ r: 255, g: 255, b: 255 }],
     tolerance: 30,
     autoSplit: false,
+    processingMode: 'edge-to-center',
   });
   const processingRef = useRef(false);
 
@@ -73,7 +74,7 @@ export function useImageProcessing() {
         const img = await loadImageFromFile(imageFile.file);
         const currentSettings = settings;
         
-        console.log('[processCurrentImage] autoSplit:', currentSettings.autoSplit, 'targetColors:', currentSettings.targetColors, 'tolerance:', currentSettings.tolerance);
+        console.log('[processCurrentImage] autoSplit:', currentSettings.autoSplit, 'processingMode:', currentSettings.processingMode, 'targetColors:', currentSettings.targetColors, 'tolerance:', currentSettings.tolerance);
 
         const results = processImage(
           img,
@@ -81,7 +82,8 @@ export function useImageProcessing() {
           currentSettings.tolerance,
           currentSettings.autoSplit,
           imageFile.name,
-          imageId
+          imageId,
+          currentSettings.processingMode
         );
 
         console.log('[processCurrentImage] results count:', results.length, 'split pieces:', results.filter(r => r.isSplit).length);
@@ -119,6 +121,10 @@ export function useImageProcessing() {
 
   const toggleAutoSplit = useCallback(() => {
     setSettings((prev) => ({ ...prev, autoSplit: !prev.autoSplit }));
+  }, []);
+
+  const updateProcessingMode = useCallback((mode: ProcessingMode) => {
+    setSettings((prev) => ({ ...prev, processingMode: mode }));
   }, []);
 
   const getSelectedOriginalUrl = useCallback((): string | null => {
@@ -174,6 +180,7 @@ export function useImageProcessing() {
     updateTargetColors,
     updateTolerance,
     toggleAutoSplit,
+    updateProcessingMode,
     getSelectedOriginalUrl,
     getSelectedCleanedUrl,
     getSelectedSplitUrls,

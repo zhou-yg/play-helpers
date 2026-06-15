@@ -1,4 +1,4 @@
-import type { RGBColor, ProcessedImage } from '../types';
+import type { RGBColor, ProcessedImage, ProcessingMode } from '../types';
 import {
   getPixelColor,
   setPixelAlpha,
@@ -31,8 +31,13 @@ export function imageToCanvas(img: HTMLImageElement): HTMLCanvasElement {
 export function removeBackground(
   source: HTMLImageElement,
   targetColors: RGBColor[],
-  tolerance: number
+  tolerance: number,
+  mode: ProcessingMode = 'global'
 ): HTMLCanvasElement {
+  if (mode === 'edge-to-center') {
+    return removeBackgroundEdgeToCenter(source, targetColors, tolerance);
+  }
+
   const canvas = imageToCanvas(source);
   const ctx = canvas.getContext('2d')!;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -42,6 +47,81 @@ export function removeBackground(
     const pixel = getPixelColor(data, i);
     if (isColorInRange(pixel, targetColors, tolerance)) {
       setPixelAlpha(data, i, 0);
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+/**
+ * 边缘向中心处理模式：从图像四周边缘开始 BFS，
+ * 仅移除从边缘可达的、与目标颜色匹配的像素，
+ * 避免移除图像内部与背景色相同的前景像素。
+ */
+function removeBackgroundEdgeToCenter(
+  source: HTMLImageElement,
+  targetColors: RGBColor[],
+  tolerance: number
+): HTMLCanvasElement {
+  const canvas = imageToCanvas(source);
+  const ctx = canvas.getContext('2d')!;
+  const width = canvas.width;
+  const height = canvas.height;
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  const totalPixels = width * height;
+  const visited = new Uint8Array(totalPixels);
+  const toRemove = new Uint8Array(totalPixels);
+
+  // 使用队列进行 BFS，从所有边缘像素出发
+  const queue: number[] = [];
+
+  // 将所有边缘像素加入队列
+  for (let x = 0; x < width; x++) {
+    // 顶边
+    queue.push(x);
+    // 底边
+    queue.push((height - 1) * width + x);
+  }
+  for (let y = 1; y < height - 1; y++) {
+    // 左边
+    queue.push(y * width);
+    // 右边
+    queue.push(y * width + (width - 1));
+  }
+
+  // BFS：从边缘向内扩展，只处理匹配目标颜色的像素
+  let head = 0;
+  while (head < queue.length) {
+    const idx = queue[head++];
+    if (visited[idx]) continue;
+    visited[idx] = 1;
+
+    const pxIdx = idx * 4;
+    const pixel = getPixelColor(data, pxIdx);
+
+    // 如果当前像素不匹配目标颜色，停止向此方向扩展
+    if (!isColorInRange(pixel, targetColors, tolerance)) continue;
+
+    // 标记为需要移除
+    toRemove[idx] = 1;
+
+    // 向四个邻域扩展
+    const x = idx % width;
+    const y = Math.floor(idx / width);
+
+    if (x > 0) queue.push(idx - 1);
+    if (x < width - 1) queue.push(idx + 1);
+    if (y > 0) queue.push(idx - width);
+    if (y < height - 1) queue.push(idx + width);
+  }
+
+  // 将标记为移除的像素设为透明
+  for (let i = 0; i < totalPixels; i++) {
+    if (toRemove[i]) {
+      setPixelAlpha(data, i * 4, 0);
     }
   }
 
@@ -157,11 +237,12 @@ export function processImage(
   tolerance: number,
   autoSplitEnabled: boolean,
   name: string,
-  originalId: string
+  originalId: string,
+  processingMode: ProcessingMode = 'global'
 ): ProcessedImage[] {
-  console.log('[processImage] autoSplitEnabled:', autoSplitEnabled, 'image size:', img.naturalWidth, 'x', img.naturalHeight);
+  console.log('[processImage] autoSplitEnabled:', autoSplitEnabled, 'processingMode:', processingMode, 'image size:', img.naturalWidth, 'x', img.naturalHeight);
   
-  const cleanedCanvas = removeBackground(img, targetColors, tolerance);
+  const cleanedCanvas = removeBackground(img, targetColors, tolerance, processingMode);
 
   const results: ProcessedImage[] = [
     {

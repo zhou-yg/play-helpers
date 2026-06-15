@@ -23,6 +23,7 @@ const App: React.FC = () => {
     updateTargetColors,
     updateTolerance,
     toggleAutoSplit,
+    updateProcessingMode,
     getSelectedOriginalUrl,
     getSelectedCleanedUrl,
     getSelectedSplitUrls,
@@ -90,9 +91,11 @@ const App: React.FC = () => {
             targetColors={settings.targetColors}
             tolerance={settings.tolerance}
             autoSplit={settings.autoSplit}
+            processingMode={settings.processingMode}
             onTargetColorsChange={updateTargetColors}
             onToleranceChange={updateTolerance}
             onAutoSplitToggle={toggleAutoSplit}
+            onProcessingModeChange={updateProcessingMode}
             onProcess={handleProcess}
           />
         </div>

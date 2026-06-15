@@ -593,3 +593,49 @@
   background: var(--danger);
   color: #fff;
 }
+
+/* ========== Mode Selector ========== */
+.mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  text-align: left;
+}
+
+.mode-btn:hover {
+  border-color: var(--accent);
+}
+
+.mode-btn.active {
+  border-color: var(--accent);
+  background: rgba(0, 188, 212, 0.08);
+}
+
+.mode-btn-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mode-btn.active .mode-btn-title {
+  color: var(--accent);
+}
+
+.mode-btn-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
