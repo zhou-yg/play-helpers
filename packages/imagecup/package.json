@@ -10,6 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@play-helpers/perfect-pixel": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

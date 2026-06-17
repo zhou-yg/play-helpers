@@ -168,6 +168,7 @@ export function useImageProcessing() {
   return {
     images,
     processedImages,
+    setProcessedImages,
     selectedImageId,
     previewMode,
     settings,

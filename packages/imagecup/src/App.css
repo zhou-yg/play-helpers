@@ -51,6 +51,26 @@
   transition: background 0.2s;
 }
 
+.btn-process-main {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-process-main:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: scale(1.02);
+}
+.btn-process-main:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-toolbar:hover {
   background: var(--accent-hover);
   color: #fff;

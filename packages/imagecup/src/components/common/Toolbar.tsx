@@ -6,6 +6,9 @@ interface ToolbarProps {
   onExportAll: () => void;
   onExportImage: (dataUrl: string, name: string) => void;
   hasProcessedImages: boolean;
+  hasImages: boolean;
+  processing: boolean;
+  onProcess: () => void;
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -13,12 +16,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onExportAll,
   onExportImage,
   hasProcessedImages,
+  hasImages,
+  processing,
+  onProcess,
 }) => {
   return (
     <div className="toolbar">
       <div className="toolbar-title">ImageCup</div>
 
       <div className="toolbar-actions">
+        <button
+          className="btn-toolbar btn-process-main"
+          onClick={onProcess}
+          disabled={!hasImages || processing}
+          title="执行处理管线"
+        >
+          {processing ? '⏳ 处理中...' : '▶ 处理'}
+        </button>
+
         {hasProcessedImages && (
           <>
             <button
@@ -49,7 +64,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           </>
         )}
 
-        {!hasProcessedImages && processedImages.length === 0 && (
+        {!hasImages && (
           <span className="toolbar-hint">
             请先上传图片并设置参数，然后点击处理
           </span>
