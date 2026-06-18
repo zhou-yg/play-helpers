@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { CellIndex, GridCell, TerrainDef, DecorationDef } from '@/lib/types';
 import { cellKey } from '@/lib/hex-utils';

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useRef, useCallback, useMemo } from 'react';
 import { GridCell, CellIndex, TerrainDef } from '@/lib/types';
 import { hexCenter, hexPoints, cellKey, getGhostCells, getSvgViewBox, HEX_SIZE } from '@/lib/hex-utils';

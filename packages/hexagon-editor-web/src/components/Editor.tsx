@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { TerrainConfig, TerrainDef, DecorationDef, Decoration, CellIndex } from '@/lib/types';
 import { cellKey } from '@/lib/hex-utils';

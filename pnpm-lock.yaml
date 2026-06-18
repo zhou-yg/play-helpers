@@ -138,6 +138,31 @@ importers:
       '@types/react-dom': 18.3.7_@types+react@18.3.31
       typescript: 5.9.3
 
+  packages/hexagon-editor-web:
+    specifiers:
+      '@types/react': ^18.2.0
+      '@types/react-dom': ^18.2.0
+      '@vitejs/plugin-react': ^4.3.0
+      autoprefixer: ^10.4.19
+      postcss: ^8.4.38
+      react: ^18.2.0
+      react-dom: ^18.2.0
+      tailwindcss: ^3.4.4
+      typescript: ^5.3.0
+      vite: ^5.3.0
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1_react@18.3.1
+    devDependencies:
+      '@types/react': 18.3.31
+      '@types/react-dom': 18.3.7_@types+react@18.3.31
+      '@vitejs/plugin-react': 4.7.0_vite@5.4.21
+      autoprefixer: 10.5.0_postcss@8.5.15
+      postcss: 8.5.15
+      tailwindcss: 3.4.19
+      typescript: 5.9.3
+      vite: 5.4.21
+
   packages/imagecup:
     specifiers:
       '@play-helpers/perfect-pixel': workspace:*

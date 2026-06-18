@@ -1,6 +1,6 @@
 # hexagon-editor
 
-develop by next.js
+develop by React + Vite + Tailwind
 
 designed for hexagon-grids map editor for game-play
 
