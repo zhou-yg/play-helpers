@@ -1,0 +1,1 @@
+~/Documents/ai/opencode/packages/opencode/dist/openbmw-darwin-arm64/bin/openbmw
