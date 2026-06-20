@@ -119,6 +119,27 @@ export function getGhostCells(cells: Map<string, GridCell>): CellIndex[] {
   });
 }
 
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export function getCellsInRect(
+  cells: Map<string, GridCell>,
+  rect: Rect,
+): CellIndex[] {
+  const result: CellIndex[] = [];
+  for (const cell of cells.values()) {
+    const [cx, cy] = hexCenter(cell.indexes[0], cell.indexes[1]);
+    if (cx >= rect.x && cx <= rect.x + rect.width && cy >= rect.y && cy <= rect.y + rect.height) {
+      result.push([cell.indexes[0], cell.indexes[1]]);
+    }
+  }
+  return result;
+}
+
 export function getSvgViewBox(
   cells: Map<string, GridCell>,
   ghostCells: CellIndex[],

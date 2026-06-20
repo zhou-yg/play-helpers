@@ -1,6 +1,6 @@
-import React, { useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo, useState, useEffect } from 'react';
 import { GridCell, CellIndex, TerrainDef } from '@/lib/types';
-import { hexCenter, hexPoints, cellKey, getGhostCells, getSvgViewBox, HEX_SIZE } from '@/lib/hex-utils';
+import { hexCenter, hexPoints, cellKey, getGhostCells, getSvgViewBox, HEX_SIZE, getCellsInRect, Rect } from '@/lib/hex-utils';
 import { EditorMode } from '@/hooks/useEditorMode';
 
 interface HexCanvasProps {
@@ -12,6 +12,7 @@ interface HexCanvasProps {
   onCellSwap: (from: CellIndex, to: CellIndex) => void;
   onGhostCellClick?: (indexes: CellIndex) => void;
   onCellHover?: (indexes: CellIndex | null) => void;
+  onBoxSelect: (cells: CellIndex[]) => void;
 }
 
 export default function HexCanvas({
@@ -23,11 +24,14 @@ export default function HexCanvas({
   onCellSwap,
   onGhostCellClick,
   onCellHover,
+  onBoxSelect,
 }: HexCanvasProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
   const dragFrom = useRef<CellIndex | null>(null);
 
   const handleClick = useCallback(
     (indexes: CellIndex, e: React.MouseEvent) => {
+      console.log('indexes: ', indexes, e);
       if (mode === 'swap') {
         if (!dragFrom.current) {
           dragFrom.current = [indexes[0], indexes[1]];
@@ -36,10 +40,99 @@ export default function HexCanvas({
           dragFrom.current = null;
         }
       } else if (mode === 'paint' || mode === 'select') {
-        onCellClick([indexes[0], indexes[1]], e.metaKey || e.ctrlKey);
+        onCellClick([indexes[0], indexes[1]], e.metaKey || e.ctrlKey || e.shiftKey);
       }
     },
     [mode, onCellClick, onCellSwap],
+  );
+
+  const [isBoxDragging, setIsBoxDragging] = useState(false);
+  const [selectRect, setSelectRect] = useState<Rect | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const cellsRef = useRef(cells);
+  cellsRef.current = cells;
+  const onBoxSelectRef = useRef(onBoxSelect);
+  onBoxSelectRef.current = onBoxSelect;
+
+  useEffect(() => {
+    if (!isBoxDragging) return;
+
+    const handleMove = (e: MouseEvent) => {
+      const svg = svgRef.current;
+      if (!svg) return;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+      const start = dragStartRef.current;
+      setSelectRect({
+        x: Math.min(start.x, svgPt.x),
+        y: Math.min(start.y, svgPt.y),
+        width: Math.abs(svgPt.x - start.x),
+        height: Math.abs(svgPt.y - start.y),
+      });
+    };
+
+    const handleUp = (e: MouseEvent) => {
+      const svg = svgRef.current;
+      if (!svg) {
+        setIsBoxDragging(false);
+        setSelectRect(null);
+        return;
+      }
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+      const start = dragStartRef.current;
+      const dx = Math.abs(svgPt.x - start.x);
+      const dy = Math.abs(svgPt.y - start.y);
+
+      if (dx < 3 && dy < 3) {
+        onBoxSelectRef.current([]);
+      } else {
+        const rect: Rect = {
+          x: Math.min(start.x, svgPt.x),
+          y: Math.min(start.y, svgPt.y),
+          width: Math.abs(svgPt.x - start.x),
+          height: Math.abs(svgPt.y - start.y),
+        };
+        const result = getCellsInRect(cellsRef.current, rect);
+        onBoxSelectRef.current(result);
+      }
+
+      setIsBoxDragging(false);
+      setSelectRect(null);
+    };
+
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, [isBoxDragging]);
+
+  const handleSvgMouseDown = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      if (e.button !== 0) return;
+      const target = e.target as Element;
+      if (target.closest('.hexagon')) return;
+      if (mode !== 'select') return;
+
+      e.preventDefault();
+      const svg = svgRef.current;
+      if (!svg) return;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const svgPt = pt.matrixTransform(svg.getScreenCTM()!.inverse());
+
+      dragStartRef.current = { x: svgPt.x, y: svgPt.y };
+      setSelectRect({ x: svgPt.x, y: svgPt.y, width: 0, height: 0 });
+      setIsBoxDragging(true);
+    },
+    [mode],
   );
 
   const sortedCells = Array.from(cells.values()).sort((a, b) => {
@@ -209,9 +302,12 @@ export default function HexCanvas({
 
   return (
     <svg
+      ref={svgRef}
       className="hex-canvas"
       viewBox={viewBox}
       preserveAspectRatio="xMidYMid meet"
+      onMouseDown={handleSvgMouseDown}
+      style={{ userSelect: 'none' }}
     >
       <g className="axis-grid" style={{ pointerEvents: 'none' }}>
         {axisData.rowLines.map((line, i) => (
@@ -250,6 +346,20 @@ export default function HexCanvas({
           </text>
         ))}
       </g>
+
+      {selectRect && (
+        <rect
+          x={selectRect.x}
+          y={selectRect.y}
+          width={selectRect.width}
+          height={selectRect.height}
+          fill="rgba(106, 106, 174, 0.15)"
+          stroke="#6a6aae"
+          strokeWidth={1}
+          strokeDasharray="4 2"
+          style={{ pointerEvents: 'none' }}
+        />
+      )}
 
       {mode === 'paint' && ghostCells.map(([gx, gy]) => {
         const [cx, cy] = hexCenter(gx, gy);

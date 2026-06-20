@@ -21,6 +21,7 @@ export default function Editor() {
     removeDecoration,
     toggleCellSelection,
     clearSelection,
+    selectCells,
     selectAll,
     invertSelection,
     deleteSelected,
@@ -54,6 +55,13 @@ export default function Editor() {
   const handleCellHover = useCallback((indexes: CellIndex | null) => {
     setHoveredCell(indexes);
   }, []);
+
+  const handleBoxSelect = useCallback(
+    (cellIndexes: CellIndex[]) => {
+      selectCells(cellIndexes);
+    },
+    [selectCells],
+  );
 
   const handleCellClick = useCallback(
     (indexes: [number, number], additive?: boolean) => {
@@ -177,6 +185,7 @@ export default function Editor() {
               onCellSwap={swapCells}
               onGhostCellClick={handleGhostCellClick}
               onCellHover={handleCellHover}
+              onBoxSelect={handleBoxSelect}
             />
           </div>
         </div>

@@ -114,6 +114,10 @@ export function useGrid() {
     setSelected(all);
   }, []);
 
+  const selectCells = useCallback((indexesList: CellIndex[]) => {
+    setSelected(indexesList.map(([x, y]) => [x, y] as CellIndex));
+  }, []);
+
   const invertSelection = useCallback(() => {
     const currentCells = cellsRef.current;
     const currentSelected = selectedRef.current;
@@ -198,6 +202,7 @@ export function useGrid() {
     removeDecoration,
     toggleCellSelection,
     clearSelection,
+    selectCells,
     selectAll,
     invertSelection,
     deleteSelected,
