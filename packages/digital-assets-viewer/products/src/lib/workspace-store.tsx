@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { Asset, DirNode } from "./types";
 
 export interface WorkspaceState {
@@ -13,10 +20,16 @@ export interface WorkspaceState {
   assets: Asset[];
   /** absolute path of the selected file, or null */
   selected: string | null;
+  /** global search query (matches file name or tags) */
+  query: string;
   /** globally active tag filters (selected in the middle toolbar) */
   activeTags: string[];
   /** all distinct tags present anywhere in the workspace */
   allTags: string[];
+  /** files matching query + activeTags (drives both list and tree) */
+  filteredAssets: Asset[];
+  /** true when a query or tag filter is active */
+  hasFilter: boolean;
   isScanning: boolean;
   error: string | null;
 }
@@ -30,6 +43,7 @@ export interface WorkspaceActions {
   setTags: (filePath: string, tags: string[]) => Promise<void>;
   toggleTagFilter: (tag: string) => void;
   clearTagFilters: () => void;
+  setQuery: (q: string) => void;
 }
 
 const StateContext = createContext<WorkspaceState | null>(null);
@@ -60,12 +74,31 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return json as T;
 }
 
+const LAST_ROOT_KEY = "dig-viewer:last-root";
+
+function readLastRoot(): string | null {
+  try {
+    return localStorage.getItem(LAST_ROOT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeLastRoot(path: string) {
+  try {
+    localStorage.setItem(LAST_ROOT_KEY, path);
+  } catch {
+    // storage unavailable (private mode etc.) — memory-only
+  }
+}
+
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [root, setRoot] = useState<string | null>(null);
   const [currentDir, setCurrentDir] = useState<string | null>(null);
   const [dirTree, setDirTree] = useState<DirNode | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
+  const [query, setQueryState] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +121,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // restore the last chosen workspace on first mount
+  useEffect(() => {
+    const last = readLastRoot();
+    if (last) {
+      void loadRoot(last);
+    }
+  }, [loadRoot]);
+
   const pickRoot = useCallback(async () => {
     setError(null);
     try {
@@ -95,9 +136,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         method: "POST",
       });
       if (!picked.path) return; // user cancelled
+      writeLastRoot(picked.path);
       setCurrentDir(null);
       setSelected(null);
       setActiveTags([]);
+      setQueryState("");
       await loadRoot(picked.path);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -153,6 +196,34 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const clearTagFilters = useCallback(() => setActiveTags([]), []);
 
+  const setQuery = useCallback((q: string) => {
+    setQueryState(q);
+    // clear selected file if it no longer matches the new filter set
+  }, []);
+
+  /**
+   * Files matching the global query + active tag filters.
+   * The same set drives the middle list and the left tree pruning,
+   * so search/filter results stay consistent across panes.
+   */
+  const filteredAssets = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return assets.filter((a) => {
+      if (activeTags.length > 0 && !activeTags.every((t) => a.tags.includes(t)))
+        return false;
+      if (
+        q &&
+        !a.name.toLowerCase().includes(q) &&
+        !a.tags.some((t) => t.toLowerCase().includes(q))
+      )
+        return false;
+      return true;
+    });
+  }, [assets, query, activeTags]);
+
+  /** true when any filter (query or tags) is active */
+  const hasFilter = query.trim() !== "" || activeTags.length > 0;
+
   const allTags = useMemo(() => {
     const s = new Set<string>();
     for (const a of assets) a.tags.forEach((t) => s.add(t));
@@ -166,12 +237,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       dirTree,
       assets,
       selected,
+      query,
       activeTags,
       allTags,
+      filteredAssets,
+      hasFilter,
       isScanning,
       error,
     }),
-    [root, currentDir, dirTree, assets, selected, activeTags, allTags, isScanning, error]
+    [root, currentDir, dirTree, assets, selected, query, activeTags, allTags, filteredAssets, hasFilter, isScanning, error]
   );
 
   const actions = useMemo<WorkspaceActions>(
@@ -184,8 +258,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setTags,
       toggleTagFilter,
       clearTagFilters,
+      setQuery,
     }),
-    [pickRoot, selectDir, selectAsset, refresh, openInFinder, setTags, toggleTagFilter, clearTagFilters]
+    [pickRoot, selectDir, selectAsset, refresh, openInFinder, setTags, toggleTagFilter, clearTagFilters, setQuery]
   );
 
   return (

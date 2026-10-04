@@ -6,17 +6,19 @@
 
 ## 功能
 
-- **选择工作区文件夹**：以任意本地目录作为 workspace（macOS 原生文件夹选择器）
+- **选择工作区文件夹**：以任意本地目录作为 workspace（macOS 原生文件夹选择器），**最近的选择会记住**（localStorage），下次打开自动恢复
 - **左侧 — 文件夹树**
   - 层级目录树，选中高亮锚定到文件夹路径；未选中时中间列表默认展示根目录文件
   - 每个文件夹显示**递归文件数量**（含所有子目录）
-  - 选择 tags 筛选后，不包含相关 tags 文件的文件夹自动隐藏，计数变为命中数
+  - 搜索/tags 筛选激活时，不包含命中文件的文件夹自动隐藏，计数变为命中数
 - **中间 — 文件列表**
-  - 关键词搜索（文件名 / 标签）
-  - **标签快速筛选（全局）**：展示 workspace 内所有标签（无标签时显示「无」），点击多选；选中后同时过滤中间列表与左侧树
+  - **全局关键词搜索（文件名 / 标签）**：在整个 workspace 范围检索（不限当前文件夹），命中文件附带「位置」列显示所在目录
+  - **标签快速筛选（全局）**：展示 workspace 内所有标签（无标签时显示「无」），点击多选；与全局搜索叠加取交集
+  - 搜索 + 标签筛选同时驱动中间列表与左侧树的过滤（同一命中集合）
   - 排序：最近修改（默认，最新在前）/ A-Z
 - **右侧 — 预览面板**
   - 图片、3D 模型（GLB/GLTF，`<model-viewer>` 渲染）、音频、视频
+  - GLTF 外部资源（`.bin`、贴图）由 `/api/model` 服务端内联为 data URI，避免相对路径加载失败
   - 标签打标：输入回车添加、× 删除，持久化到 `<workspace>/.dig-viewer/meta.json`
 - **顶部标题栏**：产品标题「DIG-viewer」+「Finder打开」按钮（调起系统文件管理器打开当前所选文件夹）+ 刷新
 
@@ -41,7 +43,8 @@ src/
 │   ├── page.tsx              # Home：顶栏 + 左中右三栏
 │   ├── globals.css           # Tailwind 入口
 │   └── api/
-│       ├── scan/route.ts     # GET  扫描 workspace → 目录树 + 文件列表（含标签）
+│       ├── scan/route.ts     # GET  扫描 workspace → 目录树 + 文件列表（含标签、递归 fileCount）
+│       ├── model/route.ts    # GET  GLTF 外部 buffers/images 内联为 data URI（解决 .bin 相对路径报错）
 │       ├── pick-folder/route.ts # POST 原生文件夹选择器（macOS osascript）
 │       ├── open/route.ts     # POST 在系统文件管理器中打开路径
 │       ├── file/route.ts     # GET  流式读取文件用于预览

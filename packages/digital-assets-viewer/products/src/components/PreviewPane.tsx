@@ -9,6 +9,16 @@ function fileUrl(path: string): string {
   return `/api/file?path=${encodeURIComponent(path)}`;
 }
 
+/** .gltf goes through the inlining API (external .bin/textures become data URIs);
+ *  .glb is self-contained and streams directly. */
+function modelUrl(path: string): string {
+  const lower = path.toLowerCase();
+  if (lower.endsWith(".gltf")) {
+    return `/api/model?path=${encodeURIComponent(path)}`;
+  }
+  return fileUrl(path);
+}
+
 function ImagePreview({ src, name }: { src: string; name: string }) {
   return (
     <img
@@ -99,7 +109,7 @@ export default function PreviewPane() {
     );
   }
 
-  const src = fileUrl(asset.path);
+  const src = modelUrl(asset.path);
 
   return (
     <div className="flex h-full flex-col">

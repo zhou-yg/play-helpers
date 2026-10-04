@@ -102,21 +102,21 @@ function FolderRow({
 }
 
 export default function FileTree() {
-  const { dirTree, currentDir, assets, activeTags } = useWorkspaceState();
+  const { dirTree, currentDir, filteredAssets, hasFilter } = useWorkspaceState();
   const { selectDir } = useWorkspaceActions();
 
   /**
-   * When tag filters are active, compute per-directory counts of matching
-   * files and hide folders that contain none.
+   * When a filter (global search query and/or tag filters) is active, compute
+   * per-directory counts of matching files and hide folders that contain none.
+   * `filteredAssets` is the same set the middle list shows.
    */
   const { matchedMap, visibleRoot } = useMemo(() => {
     if (!dirTree) return { matchedMap: null, visibleRoot: null };
-    if (activeTags.length === 0) {
+    if (!hasFilter) {
       return { matchedMap: null, visibleRoot: dirTree };
     }
     const map = new Map<string, number>();
-    for (const a of assets) {
-      if (!activeTags.every((t) => a.tags.includes(t))) continue;
+    for (const a of filteredAssets) {
       const parent = a.path.slice(0, a.path.lastIndexOf("/"));
       map.set(parent, (map.get(parent) ?? 0) + 1);
     }
@@ -143,12 +143,12 @@ export default function FileTree() {
     };
     const pruned = prune(dirTree);
     return { matchedMap: map, visibleRoot: pruned };
-  }, [dirTree, assets, activeTags]);
+  }, [dirTree, filteredAssets, hasFilter]);
 
   if (!visibleRoot) {
     return (
       <div className="flex h-full items-center justify-center p-4 text-center text-xs text-zinc-600">
-        没有包含所选标签的文件夹
+        没有匹配的文件夹
       </div>
     );
   }

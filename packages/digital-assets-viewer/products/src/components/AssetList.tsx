@@ -15,13 +15,36 @@ const KIND_ICON: Record<string, string> = {
   other: "📄",
 };
 
+/** Relative directory of an asset (relative to root, "" for root files). */
+function dirLabel(a: Asset, root: string | null): string {
+  if (!root) return "";
+  const rel = a.relPath.includes("/")
+    ? a.relPath.slice(0, a.relPath.lastIndexOf("/"))
+    : "";
+  return rel || "";
+}
+
 export default function AssetList() {
-  const { assets, currentDir, root, selected, allTags, activeTags } =
-    useWorkspaceState();
-  const { selectAsset, toggleTagFilter, clearTagFilters } = useWorkspaceActions();
-  const [query, setQuery] = useState("");
+  const {
+    root,
+    currentDir,
+    assets,
+    filteredAssets,
+    hasFilter,
+    selected,
+    allTags,
+    activeTags,
+    query,
+  } = useWorkspaceState();
+  const {
+    selectAsset,
+    toggleTagFilter,
+    clearTagFilters,
+    setQuery,
+  } = useWorkspaceActions();
   const [sortKey, setSortKey] = useState<SortKey>("added");
 
+  /** files of the currently open folder (no filter) */
   const inDir = useMemo(() => {
     const base = currentDir ?? root;
     if (!base) return [];
@@ -31,27 +54,18 @@ export default function AssetList() {
     });
   }, [assets, currentDir, root]);
 
+  /** global search mode shows every matching file in the workspace */
+  const listing = hasFilter ? filteredAssets : inDir;
+
   const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let list = inDir;
-    if (activeTags.length > 0) {
-      list = list.filter((a) => activeTags.every((t) => a.tags.includes(t)));
-    }
-    if (q) {
-      list = list.filter(
-        (a) =>
-          a.name.toLowerCase().includes(q) ||
-          a.tags.some((t) => t.toLowerCase().includes(q))
-      );
-    }
-    const sorted = [...list];
+    const sorted = [...listing];
     if (sortKey === "name") {
       sorted.sort((a, b) => a.name.localeCompare(b.name));
     } else {
       sorted.sort((a, b) => b.mtime - a.mtime); // newest first (default)
     }
     return sorted;
-  }, [inDir, query, activeTags, sortKey]);
+  }, [listing, sortKey]);
 
   return (
     <div className="flex h-full flex-col">
@@ -62,8 +76,8 @@ export default function AssetList() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="搜索文件名或标签…"
-              className="w-full rounded-md border border-zinc-700 bg-zinc-900 py-1.5 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-sky-600 focus:outline-none"
+              placeholder="全局搜索文件名或标签…"
+              className="w-full rounded-md border border-zinc-700 bg-zinc-900 py-1.5 pl-8 pr-8 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-sky-600 focus:outline-none"
             />
             <svg
               viewBox="0 0 20 20"
@@ -76,6 +90,15 @@ export default function AssetList() {
                 clipRule="evenodd"
               />
             </svg>
+            {query && (
+              <button
+                onClick={() => setQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                title="清空搜索"
+              >
+                ×
+              </button>
+            )}
           </div>
           <select
             value={sortKey}
@@ -87,7 +110,7 @@ export default function AssetList() {
           </select>
         </div>
 
-        {/* tags quick filter — global tags, always rendered */}
+        {/* tags quick filter — global, always rendered */}
         <div className="flex items-center gap-1.5">
           <span className="shrink-0 text-[11px] uppercase tracking-wider text-zinc-600">
             标签
@@ -109,9 +132,12 @@ export default function AssetList() {
                   #{t}
                 </button>
               ))}
-              {activeTags.length > 0 && (
+              {(activeTags.length > 0 || query) && (
                 <button
-                  onClick={clearTagFilters}
+                  onClick={() => {
+                    clearTagFilters();
+                    setQuery("");
+                  }}
                   className="ml-1 text-[11px] text-zinc-500 hover:text-zinc-300"
                 >
                   清除筛选
@@ -120,19 +146,31 @@ export default function AssetList() {
             </div>
           )}
         </div>
+
+        {/* status line in global-search mode */}
+        {hasFilter && (
+          <div className="text-[11px] text-zinc-500">
+            全局搜索：命中 {filteredAssets.length} / {assets.length} 个文件
+          </div>
+        )}
       </div>
 
       {/* list */}
       <div className="flex-1 overflow-y-auto p-2">
         {shown.length === 0 ? (
           <div className="flex h-full items-center justify-center text-sm text-zinc-600">
-            {inDir.length === 0 ? "此文件夹为空" : "没有匹配的文件"}
+            {hasFilter
+              ? "没有匹配的文件"
+              : inDir.length === 0
+                ? "此文件夹为空"
+                : "没有匹配的文件"}
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[11px] uppercase tracking-wider text-zinc-600">
                 <th className="px-2 py-1.5 font-medium">名称</th>
+                {hasFilter && <th className="px-2 py-1.5 font-medium">位置</th>}
                 <th className="px-2 py-1.5 font-medium">类型</th>
                 <th className="px-2 py-1.5 font-medium">标签</th>
                 <th className="px-2 py-1.5 font-medium">大小</th>
@@ -154,6 +192,14 @@ export default function AssetList() {
                     <span className="mr-1.5">{KIND_ICON[a.kind]}</span>
                     {a.name}
                   </td>
+                  {hasFilter && (
+                    <td
+                      className="max-w-[180px] truncate px-2 py-1.5 text-xs text-zinc-500"
+                      title={dirLabel(a, root)}
+                    >
+                      {dirLabel(a, root) || "根目录"}
+                    </td>
+                  )}
                   <td className="whitespace-nowrap px-2 py-1.5 text-xs text-zinc-500">
                     {KIND_LABEL[a.kind]}
                   </td>
